@@ -2,7 +2,7 @@
   const scroll = (top) => window.scrollTo({ top });
   const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  async function loadFullPlaylist() {
+  async function scrollPlaylist() {
     const spinner = document.querySelector('.CatalogBlock__autoListLoader');
     let pageHeight = 0;
     do {
@@ -18,11 +18,11 @@
   function parsePlaylist() {
     return [...document.querySelectorAll('.audio_row__performer_title')].map(
       (row) => {
-        const artist = row.querySelector('.audio_row__performers').textContent;
-        const title = row.querySelector('.audio_row__title ').textContent;
-        return [artist, title]
-          .map((v) => v.replace(/[\s\n ]+/g, ' ').trim())
-          .join(' - ');
+        const [artist, title] = ['.audio_row__performers', '.audio_row__title']
+          .map(selector => row.querySelector(selector)?.textContent || '')
+          .map((v) => v.replace(/[\s\n ]+/g, ' ').trim());
+
+        return [artist, title].join(' - ');
       },
     );
   }
@@ -41,7 +41,7 @@
   }
 
   // Main
-  await loadFullPlaylist();
+  await scrollPlaylist();
   const list = parsePlaylist();
   saveToFile('vk-playlist.txt', list.join('\n'));
 })();
