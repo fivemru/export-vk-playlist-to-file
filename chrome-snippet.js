@@ -11,7 +11,7 @@
       await delay(400);
     } while (
       pageHeight < document.body.clientHeight ||
-      spinner.style.display === ''
+      spinner?.style.display === ''
     );
   }
 
