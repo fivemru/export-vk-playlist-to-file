@@ -8,7 +8,9 @@
     while (true) {
       const scrollHeight = document.body.scrollHeight;
       if (scrollHeight === lastHeight) {
-        if (!spinner || spinner.style.display === 'none' || spinner.hidden) break;
+        if (!spinner || spinner.style.display === 'none' || spinner.hidden) {
+          break;
+        }
       }
       lastHeight = scrollHeight;
       scroll(scrollHeight);
@@ -43,6 +45,6 @@
     console.warn('Empty song list, possible selectors out-of date. Write to repository maintainers');
   } else {
     saveToFile('vk-playlist.txt', list.join('\n'));
-    console.log(`Сохранено ${list.length} треков`);
+    console.log(`Saved ${list.length} compositions`);
   }
 })();
