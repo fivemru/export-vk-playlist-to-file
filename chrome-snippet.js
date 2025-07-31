@@ -1,30 +1,29 @@
 (async () => {
-  const scroll = (top) => window.scrollTo({ top });
+  const scroll = (top) => window.scrollTo({ top, behavior: 'smooth' });
   const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
   async function scrollPlaylist() {
     const spinner = document.querySelector('.CatalogBlock__autoListLoader');
-    let pageHeight = 0;
-    do {
-      pageHeight = document.body.clientHeight;
-      scroll(pageHeight);
-      await delay(400);
-    } while (
-      pageHeight < document.body.clientHeight ||
-      spinner?.style.display === ''
-    );
+    let lastHeight = 0;
+    while (true) {
+      const scrollHeight = document.body.scrollHeight;
+      if (scrollHeight === lastHeight) {
+        if (!spinner || spinner.style.display === 'none' || spinner.hidden) {
+          break;
+        }
+      }
+      lastHeight = scrollHeight;
+      scroll(scrollHeight);
+      await delay(1000);
+    }
   }
 
   function parsePlaylist() {
-    return [...document.querySelectorAll('.audio_row__performer_title')].map(
-      (row) => {
-        const [artist, title] = ['.audio_row__performers', '.audio_row__title']
-          .map(selector => row.querySelector(selector)?.textContent || '')
-          .map((v) => v.replace(/[\s\n ]+/g, ' ').trim());
-
-        return [artist, title].join(' - ');
-      },
-    );
+    return [...document.querySelectorAll('.ai_label')].map(row => {
+      const title = row.querySelector('.ai_title')?.textContent.trim() || '';
+      const artist = row.querySelector('.ai_artist')?.textContent.trim() || '';
+      return `${artist} - ${title}`;
+    });
   }
 
   function saveToFile(filename, content) {
@@ -33,7 +32,6 @@
     const link = document.createElement('a');
     link.download = filename;
     link.href = URL.createObjectURL(blob);
-    link.target = '_blank';
     link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
@@ -43,5 +41,10 @@
   // Main
   await scrollPlaylist();
   const list = parsePlaylist();
-  saveToFile('vk-playlist.txt', list.join('\n'));
+  if (list.length === 0) {
+    console.warn('Empty song list, possible selectors out-of date. Write to repository maintainers');
+  } else {
+    saveToFile('vk-playlist.txt', list.join('\n'));
+    console.log(`Saved ${list.length} compositions`);
+  }
 })();
