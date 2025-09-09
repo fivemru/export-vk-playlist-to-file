@@ -18,13 +18,27 @@
     }
   }
 
-  function parsePlaylist() {
-    return [...document.querySelectorAll('.ai_label')].map(row => {
-      const title = row.querySelector('.ai_title')?.textContent.trim() || '';
-      const artist = row.querySelector('.ai_artist')?.textContent.trim() || '';
-      return `${artist} - ${title}`;
-    });
-  }
+function parsePlaylist() {
+  const songs = [...document.querySelectorAll(".audio_row")].map(song => {
+    let dataStr = song.getAttribute('data-audio');
+    dataStr = dataStr.replace(/&quot;/g, '"');
+    let data;
+    try {
+      data = JSON.parse(dataStr);
+    } catch (e) {
+      console.warn('Ошибка парсинга data-audio', dataStr);
+      return null;
+    }
+    const name = data[3];   
+    const artist = data[4]; 
+    return `${artist} - ${name}`;
+  }).filter(Boolean); // убираем null
+
+  return songs;
+}
+
+
+  
 
   function saveToFile(filename, content) {
     const data = content.replace(/\n/g, '\r\n');
