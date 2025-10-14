@@ -18,26 +18,14 @@
     }
   }
 
-function parsePlaylist() {
-  const songs = [...document.querySelectorAll(".audio_row")].map(song => {
-    let dataStr = song.getAttribute('data-audio');
-    dataStr = dataStr.replace(/&quot;/g, '"');
-    let data;
-    try {
-      data = JSON.parse(dataStr);
-    } catch (e) {
-      console.warn('Ошибка парсинга data-audio', dataStr);
-      return null;
-    }
-    const name = data[3];   
-    const artist = data[4]; 
-    return `${artist} - ${name}`;
-  }).filter(Boolean); // убираем null
-
-  return songs;
-}
-
-
+  function parsePlaylist() {
+    const songs = [...document.querySelectorAll('[data-testid="MusicTrackRow_Info"]')].map(song => {
+      const name = song.querySelector('[data-testid="MusicTrackRow_Title"]').childNodes[0].textContent.trim();   
+      const artist = song.querySelector('[data-testid="MusicTrackRow_Authors"]').childNodes[0].textContent.trim(); 
+      return `${artist} - ${name}`;
+    }).filter(Boolean); // убираем null
+    return songs;
+  }
   
 
   function saveToFile(filename, content) {
