@@ -1,40 +1,40 @@
 (async () => {
-  const scroll = (top) => window.scrollTo({ top, behavior: 'smooth' });
+  const scroll = (top) => window.scrollTo({ top });
   const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
   async function scrollPlaylist() {
-    const spinner = document.querySelector('.CatalogBlock__autoListLoader');
-    let lastHeight = 0;
-    while (true) {
-      const scrollHeight = document.body.scrollHeight;
-      if (scrollHeight === lastHeight) {
-        if (!spinner || spinner.style.display === 'none' || spinner.hidden) {
-          break;
-        }
-      }
-      lastHeight = scrollHeight;
-      scroll(scrollHeight);
-      await delay(1000);
-    }
+    const spinner = document.querySelector(".CatalogBlock__autoListLoader");
+    let pageHeight = 0;
+    do {
+      pageHeight = document.body.clientHeight;
+      scroll(pageHeight);
+      await delay(400);
+    } while (
+      pageHeight < document.body.clientHeight ||
+      spinner?.style.display === ""
+    );
   }
 
   function parsePlaylist() {
-    const songs = [...document.querySelectorAll('[data-testid="MusicTrackRow_Info"]')].map(song => {
-      const name = song.querySelector('[data-testid="MusicTrackRow_Title"]').childNodes[0].textContent.trim();   
-      const artist = song.querySelector('[data-testid="MusicTrackRow_Authors"]').childNodes[0].textContent.trim(); 
-      return `${artist} - ${name}`;
-    }).filter(Boolean); // убираем null
-    return songs;
+    return [...document.querySelectorAll(".audio_row__performer_title")].map(
+      (row) => {
+        const [artist, title] = [".audio_row__performers", ".audio_row__title"]
+          .map((selector) => row.querySelector(selector)?.textContent || "")
+          .map((v) => v.replace(/[\s\n ]+/g, " ").trim());
+
+        return [artist, title].join(" - ");
+      }
+    );
   }
-  
 
   function saveToFile(filename, content) {
-    const data = content.replace(/\n/g, '\r\n');
-    const blob = new Blob([data], { type: 'text/plain' });
-    const link = document.createElement('a');
+    const data = content.replace(/\n/g, "\r\n");
+    const blob = new Blob([data], { type: "text/plain" });
+    const link = document.createElement("a");
     link.download = filename;
     link.href = URL.createObjectURL(blob);
-    link.style.display = 'none';
+    link.target = "_blank";
+    link.style.display = "none";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -43,10 +43,10 @@
   // Main
   await scrollPlaylist();
   const list = parsePlaylist();
+
   if (list.length === 0) {
-    console.warn('Empty song list, possible selectors out-of date. Write to repository maintainers');
+    alert("Music not found");
   } else {
-    saveToFile('vk-playlist.txt', list.join('\n'));
-    console.log(`Saved ${list.length} compositions`);
+    saveToFile("vk-playlist.txt", list.join("\n"));
   }
 })();
